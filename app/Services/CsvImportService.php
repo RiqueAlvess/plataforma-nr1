@@ -132,10 +132,11 @@ class CsvImportService
 
         CsvRecord::create([
             'csv_import_id' => $import->id,
-            'unidade_id' => $unidade->id,
-            'setor_id' => $setor->id,
-            'email' => strtolower($email),
-            'linha_csv' => $numeroLinha,
+            'unidade_id'    => $unidade->id,
+            'setor_id'      => $setor->id,
+            'email'         => strtolower($email),
+            'email_hash'    => hash('sha256', strtolower(trim($email))),
+            'linha_csv'     => $numeroLinha,
         ]);
     }
 }

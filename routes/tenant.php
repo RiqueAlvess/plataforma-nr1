@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\Tenant\CampaignController;
 use App\Http\Controllers\Tenant\CsvImportController;
+use App\Http\Controllers\Tenant\SurveyInviteController;
 use App\Http\Controllers\Tenant\UserController as TenantUserController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -15,6 +18,14 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+
+    // Public survey routes (no auth required)
+    Route::prefix('pesquisa')->name('pesquisa.')->group(function () {
+        Route::get('/concluido', [SurveyController::class, 'concluido'])->name('concluido');
+        Route::get('/{token}', [SurveyController::class, 'consentimento'])->name('consentimento');
+        Route::get('/{token}/questionario', [SurveyController::class, 'questionario'])->name('questionario');
+        Route::post('/{token}/responder', [SurveyController::class, 'responder'])->name('responder');
+    });
 
     // Auth routes (guest only)
     Route::middleware('guest')->group(function () {
@@ -46,6 +57,22 @@ Route::middleware([
                 Route::post('/', [CsvImportController::class, 'store'])->name('store');
                 Route::get('/{import}', [CsvImportController::class, 'show'])->name('show');
                 Route::delete('/{import}', [CsvImportController::class, 'destroy'])->name('destroy');
+            });
+
+            // Campanhas de Pesquisa
+            Route::prefix('campanhas')->name('tenant.campanhas.')->group(function () {
+                Route::get('/', [CampaignController::class, 'index'])->name('index');
+                Route::get('/nova', [CampaignController::class, 'create'])->name('create');
+                Route::post('/', [CampaignController::class, 'store'])->name('store');
+                Route::get('/{campaign}', [CampaignController::class, 'show'])->name('show');
+                Route::get('/{campaign}/editar', [CampaignController::class, 'edit'])->name('edit');
+                Route::put('/{campaign}', [CampaignController::class, 'update'])->name('update');
+                Route::delete('/{campaign}', [CampaignController::class, 'destroy'])->name('destroy');
+                Route::post('/{campaign}/toggle-status', [CampaignController::class, 'toggleStatus'])->name('toggle-status');
+                Route::get('/{campaign}/analytics', [CampaignController::class, 'analytics'])->name('analytics');
+                // Survey invites
+                Route::post('/{campaign}/convites/preparar', [SurveyInviteController::class, 'preparar'])->name('convites.preparar');
+                Route::post('/{campaign}/convites/enviar', [SurveyInviteController::class, 'enviar'])->name('convites.enviar');
             });
 
             // Gestão de Usuários do Tenant
