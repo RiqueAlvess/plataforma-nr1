@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    image: plataforma-nr1-app
+    container_name: plataforma_nr1_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/app/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    networks:
+      - plataforma_nr1
+    depends_on:
+      - db
+      - redis
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+
+  webserver:
+    image: nginx:alpine
+    container_name: plataforma_nr1_nginx
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-80}:80'
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - plataforma_nr1
+    depends_on:
+      - app
+
+  db:
+    image: postgres:16-alpine
+    container_name: plataforma_nr1_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-plataforma_nr1}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - plataforma_nr1_db:/var/lib/postgresql/data
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - plataforma_nr1
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: plataforma_nr1_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - plataforma_nr1_redis:/data
+    networks:
+      - plataforma_nr1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    image: plataforma-nr1-app
+    container_name: plataforma_nr1_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - .:/var/www/html
+    networks:
+      - plataforma_nr1
+    depends_on:
+      - db
+      - redis
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    image: plataforma-nr1-app
+    container_name: plataforma_nr1_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - plataforma_nr1
+    depends_on:
+      - db
+      - redis
+
+networks:
+  plataforma_nr1:
+    driver: bridge
+
+volumes:
+  plataforma_nr1_db:
+    driver: local
+  plataforma_nr1_redis:
+    driver: local
