@@ -23,7 +23,7 @@
             <!-- Navigation -->
             <nav class="px-3 py-4 flex-1 overflow-y-auto">
                 <div class="space-y-1">
-                    <NavItem :href="route('dashboard')" :active="isRoute('dashboard')">
+                    <NavItem :href="dashboardRoute" :active="isRoute('dashboard') || isRoute('tenant.dashboard')">
                         <template #icon>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -31,6 +31,29 @@
                         </template>
                         Dashboard
                     </NavItem>
+
+                    <!-- RH Only -->
+                    <template v-if="isRh">
+                        <div class="pt-4 pb-2">
+                            <p class="text-xs font-semibold text-indigo-400 uppercase tracking-wider px-3">Gestão</p>
+                        </div>
+                        <NavItem :href="route('tenant.importacao.index')" :active="isRoute('tenant.importacao.*')">
+                            <template #icon>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                            </template>
+                            Importação CSV
+                        </NavItem>
+                        <NavItem :href="route('tenant.usuarios.index')" :active="isRoute('tenant.usuarios.*')">
+                            <template #icon>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13 5.197v-1a6 6 0 00-5-5.917"/>
+                                </svg>
+                            </template>
+                            Usuários
+                        </NavItem>
+                    </template>
 
                     <!-- Admin Only -->
                     <template v-if="isGlobalAdmin">
@@ -148,6 +171,25 @@ const page = usePage();
 const sidebarOpen = ref(false);
 
 const isGlobalAdmin = computed(() => page.props.auth.user?.role === 'GLOBAL_ADMIN');
+const isRh = computed(() => page.props.auth.user?.role === 'RH');
+
+const resolveRoute = (centralName, tenantName) => {
+    try {
+        return route(tenantName);
+    } catch {
+        return route(centralName);
+    }
+};
+
+const dashboardRoute = computed(() => resolveRoute('dashboard', 'tenant.dashboard'));
+const logoutRouteName = computed(() => {
+    try {
+        route('tenant.logout');
+        return 'tenant.logout';
+    } catch {
+        return 'logout';
+    }
+});
 
 const tenantName = computed(() => {
     if (isGlobalAdmin.value) return 'Admin Global';
@@ -177,6 +219,6 @@ const isRoute = (pattern) => {
 };
 
 const logout = () => {
-    router.post(route('logout'));
+    router.post(route(logoutRouteName.value));
 };
 </script>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -72,5 +73,15 @@ class User extends Authenticatable
             'failed_login_attempts' => 0,
             'locked_at' => null,
         ]);
+    }
+
+    public function leaderPermissions(): HasMany
+    {
+        return $this->hasMany(LeaderPermission::class);
+    }
+
+    public function csvImports(): HasMany
+    {
+        return $this->hasMany(CsvImport::class);
     }
 }

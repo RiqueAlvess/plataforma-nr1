@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Services\AuthService;
+use App\Services\CsvImportService;
 use App\Services\PasswordResetService;
 use App\Services\TenantService;
+use App\Services\TenantUserService;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
@@ -17,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AuthService::class);
         $this->app->singleton(TenantService::class);
         $this->app->singleton(PasswordResetService::class);
+        $this->app->singleton(CsvImportService::class);
+        $this->app->singleton(TenantUserService::class);
     }
 
     public function boot(): void
