@@ -43,6 +43,7 @@ class HandleInertiaRequests extends Middleware
                     'role'        => $user->role,
                     'tenant_id'   => $user->tenant_id,
                     'tenant_name' => $tenantName,
+                    'is_active'   => $user->is_active,
                 ] : null,
             ],
             'flash' => [

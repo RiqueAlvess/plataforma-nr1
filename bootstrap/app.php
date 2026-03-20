@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
             'global_admin' => EnsureGlobalAdmin::class,
             'rh_or_above' => EnsureRhOrAbove::class,
         ]);
