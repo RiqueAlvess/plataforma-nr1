@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Jobs\SendSurveyInviteEmail;
+use App\Jobs\SendSurveyInviteJob;
 use App\Models\Campaign;
-use App\Models\CsvRecord;
+use App\Models\CsvImportRecord;
 use App\Models\SurveyInvite;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
@@ -19,7 +19,7 @@ class SurveyInviteService
     }
 
     /**
-     * Create invites for all CSV records that do not yet have one in this campaign.
+     * Create invites for all CSV import records that do not yet have one in this campaign.
      */
     public function prepararConvites(Campaign $campaign): int
     {
@@ -28,7 +28,7 @@ class SurveyInviteService
             ->flip()
             ->all();
 
-        $registros = CsvRecord::whereNotNull('email_hash')
+        $registros = CsvImportRecord::whereNotNull('email_hash')
             ->select('email_hash')
             ->distinct()
             ->get();
@@ -43,10 +43,10 @@ class SurveyInviteService
             }
 
             SurveyInvite::create([
-                'campaign_id'    => $campaign->id,
-                'email_hash'     => $hash,
-                'token'          => Str::random(64),
-                'envio_status'   => 'pendente',
+                'campaign_id'     => $campaign->id,
+                'email_hash'      => $hash,
+                'token'           => Str::random(64),
+                'envio_status'    => 'pendente',
                 'resposta_status' => 'pendente',
             ]);
 
@@ -69,18 +69,20 @@ class SurveyInviteService
             ->where('resposta_status', 'pendente')
             ->get();
 
+        $enfileirados = 0;
+
         foreach ($invites as $invite) {
-            // Find the real email associated with this hash to dispatch the job
-            $csvRecord = CsvRecord::where('email_hash', $invite->email_hash)->first();
+            SendSurveyInviteJob::dispatch($invite);
 
-            if (! $csvRecord) {
-                continue;
-            }
+            $invite->update([
+                'envio_status' => 'enviado',
+                'enviado_em'   => now(),
+            ]);
 
-            SendSurveyInviteEmail::dispatch($invite, $csvRecord->email, $campaign);
+            $enfileirados++;
         }
 
-        return $invites->count();
+        return $enfileirados;
     }
 
     public function marcarRespondido(SurveyInvite $invite): void

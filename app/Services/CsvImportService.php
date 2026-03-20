@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\CsvImport;
-use App\Models\CsvRecord;
+use App\Models\CsvImportRecord;
 use App\Models\Setor;
 use App\Models\Unidade;
 use App\Models\User;
@@ -22,16 +22,16 @@ class CsvImportService
     public function processarComCabecalho(UploadedFile $arquivo, User $usuario): CsvImport
     {
         $import = CsvImport::create([
-            'user_id' => $usuario->id,
+            'user_id'      => $usuario->id,
             'nome_arquivo' => $arquivo->getClientOriginalName(),
-            'status' => 'processando',
+            'status'       => 'processando',
         ]);
 
         try {
             $linhas = $this->lerCsv($arquivo);
             $this->validarEstrutura($linhas);
 
-            $cabecalho = array_map('strtoupper', array_map('trim', $linhas[0]));
+            $cabecalho = array_map([$this, 'normalizarColuna'], $linhas[0]);
             $registros = array_slice($linhas, 1);
 
             $totalRegistros = count($registros);
@@ -54,14 +54,14 @@ class CsvImportService
             }
 
             $import->update([
-                'status' => 'concluido',
-                'total_registros' => $totalRegistros,
+                'status'               => 'concluido',
+                'total_registros'      => $totalRegistros,
                 'registros_importados' => $importados,
-                'registros_com_erro' => $erros,
+                'registros_com_erro'   => $erros,
             ]);
         } catch (\Exception $e) {
             $import->update([
-                'status' => 'erro',
+                'status'        => 'erro',
                 'mensagem_erro' => $e->getMessage(),
             ]);
         }
@@ -91,16 +91,26 @@ class CsvImportService
         return $linhas;
     }
 
+    private function normalizarColuna(string $coluna): string
+    {
+        $coluna = trim($coluna);
+        $coluna = mb_strtoupper($coluna, 'UTF-8');
+        // Strip accents for comparison (e.g. "UNIDÀDE" → "UNIDADE")
+        $coluna = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $coluna);
+
+        return $coluna;
+    }
+
     private function validarEstrutura(array $linhas): void
     {
-        $cabecalho = array_map('strtoupper', array_map('trim', $linhas[0]));
+        $cabecalho = array_map([$this, 'normalizarColuna'], $linhas[0]);
         $colunasObrigatorias = ['UNIDADE', 'SETOR', 'EMAIL'];
 
         foreach ($colunasObrigatorias as $coluna) {
-            if (!in_array($coluna, $cabecalho)) {
+            if (! in_array($coluna, $cabecalho)) {
                 throw new \RuntimeException(
                     "Coluna obrigatória não encontrada: {$coluna}. "
-                    . "Colunas esperadas: " . implode(', ', $colunasObrigatorias)
+                    . 'Colunas esperadas: ' . implode(', ', $colunasObrigatorias)
                 );
             }
         }
@@ -109,32 +119,31 @@ class CsvImportService
     private function processarDados(array $dados, CsvImport $import, int $numeroLinha): void
     {
         $nomeUnidade = $dados['UNIDADE'] ?? null;
-        $nomeSetor = $dados['SETOR'] ?? null;
-        $email = $dados['EMAIL'] ?? null;
+        $nomeSetor   = $dados['SETOR']   ?? null;
+        $email       = $dados['EMAIL']   ?? null;
 
         if (empty($nomeUnidade) || empty($nomeSetor) || empty($email)) {
             throw new \RuntimeException("Linha {$numeroLinha}: campos obrigatórios vazios.");
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new \RuntimeException("Linha {$numeroLinha}: email inválido '{$email}'.");
         }
 
         $unidade = Unidade::firstOrCreate(
-            ['nome' => $nomeUnidade],
+            ['nome' => mb_strtoupper(trim($nomeUnidade), 'UTF-8')],
             ['codigo' => null, 'is_active' => true]
         );
 
         $setor = Setor::firstOrCreate(
-            ['nome' => $nomeSetor, 'unidade_id' => $unidade->id],
+            ['nome' => mb_strtoupper(trim($nomeSetor), 'UTF-8'), 'unidade_id' => $unidade->id],
             ['codigo' => null, 'is_active' => true]
         );
 
-        CsvRecord::create([
+        CsvImportRecord::create([
             'csv_import_id' => $import->id,
             'unidade_id'    => $unidade->id,
             'setor_id'      => $setor->id,
-            'email'         => strtolower($email),
             'email_hash'    => hash('sha256', strtolower(trim($email))),
             'linha_csv'     => $numeroLinha,
         ]);
