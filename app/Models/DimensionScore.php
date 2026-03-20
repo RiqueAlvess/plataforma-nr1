@@ -23,6 +23,8 @@ class DimensionScore extends Model
         'classificacao_risco',
         'genero',
         'faixa_etaria',
+        'unidade_id',
+        'setor_id',
     ];
 
     protected $casts = [

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CsvRecord;
 use App\Models\DimensionScore;
 use App\Models\ResponseAnswer;
 use App\Models\SurveyInvite;
@@ -56,6 +57,11 @@ class SurveyResponseService
 
     private function calcularEsalvarScores(SurveyResponse $response, array $respostas): void
     {
+        // Lookup unidade/setor from csv_records via email_hash on the invite
+        $csvRecord = CsvRecord::where('email_hash', $response->invite->email_hash ?? '')->first();
+        $unidadeId = $csvRecord?->unidade_id;
+        $setorId   = $csvRecord?->setor_id;
+
         foreach (array_keys(HseItQuestionnaire::DIMENSOES) as $dimensao) {
             $score       = HseItQuestionnaire::calcularScore($dimensao, $respostas);
             $ehNegativa  = HseItQuestionnaire::isDimensaoNegativa($dimensao);
@@ -78,6 +84,8 @@ class SurveyResponseService
                 'classificacao_risco' => $classif,
                 'genero'             => $response->genero,
                 'faixa_etaria'       => $response->faixa_etaria,
+                'unidade_id'         => $unidadeId,
+                'setor_id'           => $setorId,
             ]);
         }
     }
