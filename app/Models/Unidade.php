@@ -28,9 +28,9 @@ class Unidade extends Model
         return $this->hasMany(Setor::class);
     }
 
-    public function csvRecords(): HasMany
+    public function importRecords(): HasMany
     {
-        return $this->hasMany(CsvRecord::class);
+        return $this->hasMany(CsvImportRecord::class);
     }
 
     public function leaderPermissions(): HasMany

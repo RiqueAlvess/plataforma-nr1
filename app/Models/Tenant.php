@@ -30,17 +30,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         ];
     }
 
-    public static function getCustomColumns(): array
-    {
-        return [
-            'id',
-            'company_name',
-            'cnpj',
-            'cnae',
-            'responsible_email',
-            'is_active',
-        ];
-    }
+    public static array $customColumns = [
+        'id',
+        'company_name',
+        'cnpj',
+        'cnae',
+        'responsible_email',
+        'is_active',
+    ];
 
     public function users(): HasMany
     {
