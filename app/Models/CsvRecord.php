@@ -15,6 +15,7 @@ class CsvRecord extends Model
         'unidade_id',
         'setor_id',
         'email',
+        'email_hash',
         'linha_csv',
     ];
 
