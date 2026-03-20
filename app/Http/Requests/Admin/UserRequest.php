@@ -18,14 +18,25 @@ class UserRequest extends FormRequest
     {
         $userId = $this->route('user')?->id;
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        $role = $this->input('role');
+        $requiresTenant = in_array($role, [UserRole::RH->value, UserRole::LEADER->value]);
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($userId)],
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users')->where(function ($query) {
+                    return $query->where('tenant_id', $this->input('tenant_id'));
+                })->ignore($userId),
+            ],
             'password' => $isUpdate
                 ? ['nullable', Password::defaults()]
                 : ['required', Password::defaults()],
             'role' => ['required', Rule::enum(UserRole::class)],
+            'tenant_id' => $requiresTenant
+                ? ['required', 'string', 'exists:tenants,id']
+                : ['nullable', 'string', 'exists:tenants,id'],
             'is_active' => ['boolean'],
         ];
     }

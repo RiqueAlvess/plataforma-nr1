@@ -2,6 +2,20 @@
     <AppLayout title="Usuários" subtitle="Gerenciar usuários do sistema">
         <Alert v-if="page.props.flash.success" type="success" :message="page.props.flash.success" class="mb-6" />
 
+        <!-- Tenant filter -->
+        <div class="mb-4 flex items-center gap-3">
+            <select
+                v-model="selectedTenant"
+                @change="filterByTenant"
+                class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+                <option value="">Todos os tenants</option>
+                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                    {{ tenant.company_name }}
+                </option>
+            </select>
+        </div>
+
         <DataTable :columns="columns" :rows="users.data">
             <template #header>
                 <h3 class="text-base font-semibold text-gray-900">Usuários do Sistema</h3>
@@ -25,6 +39,11 @@
                         <p class="text-xs text-gray-500">{{ row.email }}</p>
                     </div>
                 </div>
+            </template>
+
+            <template #cell-tenant="{ row }">
+                <span v-if="row.tenant" class="text-sm text-gray-700">{{ row.tenant.company_name }}</span>
+                <span v-else class="text-xs text-gray-400 italic">Global</span>
             </template>
 
             <template #cell-role="{ row }">
@@ -94,13 +113,15 @@ import Badge from '@/Components/Badge.vue';
 import Alert from '@/Components/Alert.vue';
 import Modal from '@/Components/Modal.vue';
 
-const props = defineProps({ users: Object });
+const props = defineProps({ users: Object, tenants: Array });
 const page = usePage();
 const deletingUser = ref(null);
 const deleting = ref(false);
+const selectedTenant = ref('');
 
 const columns = [
     { key: 'name', label: 'Usuário' },
+    { key: 'tenant', label: 'Tenant' },
     { key: 'role', label: 'Perfil' },
     { key: 'is_active', label: 'Status' },
     { key: 'locked_at', label: 'Conta' },
@@ -110,6 +131,10 @@ const initials = (name) => name.split(' ').map(n => n[0]).join('').substring(0, 
 
 const roleLabel = (role) => ({ GLOBAL_ADMIN: 'Admin Global', RH: 'RH', LEADER: 'Líder' }[role] || role);
 const roleBadge = (role) => ({ GLOBAL_ADMIN: 'primary', RH: 'info', LEADER: 'warning' }[role] || 'info');
+
+const filterByTenant = () => {
+    router.get(route('admin.users.index'), { tenant_id: selectedTenant.value || undefined }, { preserveState: true });
+};
 
 const toggleLock = (user) => {
     router.post(route('admin.users.toggle-lock', user.id));
