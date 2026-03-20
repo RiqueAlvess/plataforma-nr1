@@ -28,7 +28,7 @@ class CsvImport extends Model
 
     public function records(): HasMany
     {
-        return $this->hasMany(CsvRecord::class);
+        return $this->hasMany(CsvImportRecord::class);
     }
 
     public function isConcluido(): bool

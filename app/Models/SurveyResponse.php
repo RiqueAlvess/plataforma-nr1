@@ -37,7 +37,7 @@ class SurveyResponse extends Model
 
     public function answers(): HasMany
     {
-        return $this->hasMany(ResponseAnswer::class);
+        return $this->hasMany(SurveyAnswer::class);
     }
 
     public function dimensionScores(): HasMany

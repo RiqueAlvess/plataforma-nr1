@@ -42,4 +42,14 @@ class DimensionScore extends Model
     {
         return $this->belongsTo(Campaign::class);
     }
+
+    public function unidade(): BelongsTo
+    {
+        return $this->belongsTo(Unidade::class);
+    }
+
+    public function setor(): BelongsTo
+    {
+        return $this->belongsTo(Setor::class);
+    }
 }

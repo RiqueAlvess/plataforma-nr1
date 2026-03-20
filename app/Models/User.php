@@ -15,14 +15,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens;
 
     protected $fillable = [
-        'tenant_id',
         'name',
         'email',
         'password',
         'role',
+        'tenant_id',
         'is_active',
-        'failed_login_attempts',
         'locked_at',
+        'failed_attempts',
     ];
 
     protected $hidden = [
@@ -63,18 +63,15 @@ class User extends Authenticatable
 
     public function incrementFailedAttempts(): void
     {
-        $this->increment('failed_login_attempts');
-        if ($this->failed_login_attempts >= 3) {
+        $this->increment('failed_attempts');
+        if ($this->fresh()->failed_attempts >= 3) {
             $this->update(['locked_at' => now()]);
         }
     }
 
     public function resetFailedAttempts(): void
     {
-        $this->update([
-            'failed_login_attempts' => 0,
-            'locked_at' => null,
-        ]);
+        $this->update(['failed_attempts' => 0, 'locked_at' => null]);
     }
 
     public function tenant(): BelongsTo
