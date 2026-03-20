@@ -48,15 +48,15 @@
     }
 
     .btn-primary {
-        @apply btn bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500;
     }
 
     .btn-secondary {
-        @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-indigo-500;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-indigo-500;
     }
 
     .btn-danger {
-        @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
     }
 
     .btn-sm {
@@ -92,22 +92,22 @@
     }
 
     .badge-success {
-        @apply badge bg-green-100 text-green-800;
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800;
     }
 
     .badge-danger {
-        @apply badge bg-red-100 text-red-800;
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800;
     }
 
     .badge-warning {
-        @apply badge bg-yellow-100 text-yellow-800;
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800;
     }
 
     .badge-info {
-        @apply badge bg-blue-100 text-blue-800;
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800;
     }
 
     .badge-primary {
-        @apply badge bg-indigo-100 text-indigo-800;
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-800;
     }
 }
