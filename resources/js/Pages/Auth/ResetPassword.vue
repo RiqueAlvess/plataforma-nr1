@@ -55,6 +55,7 @@ defineOptions({ layout: null });
 const props = defineProps({
     token: String,
     email: String,
+    passwordUpdatePath: String,
 });
 
 const form = useForm({
@@ -64,7 +65,7 @@ const form = useForm({
     password_confirmation: '',
 });
 
-const submit = () => form.post(route('password.update'), {
+const submit = () => form.post(props.passwordUpdatePath, {
     onFinish: () => form.reset('password', 'password_confirmation'),
 });
 </script>

@@ -15,9 +15,12 @@ class ResetPasswordController extends Controller
 
     public function show(Request $request): Response
     {
+        $isTenant = app(\Stancl\Tenancy\Tenancy::class)->initialized;
+
         return Inertia::render('Auth/ResetPassword', [
-            'token' => $request->token,
-            'email' => $request->email,
+            'token'              => $request->token,
+            'email'              => $request->email,
+            'passwordUpdatePath' => $isTenant ? route('tenant.password.update') : route('password.update'),
         ]);
     }
 
@@ -39,6 +42,8 @@ class ResetPasswordController extends Controller
             return back()->withErrors(['email' => 'Token inválido ou expirado.']);
         }
 
-        return redirect()->route('login')->with('status', 'Senha redefinida com sucesso! Faça login com sua nova senha.');
+        $loginRoute = app(\Stancl\Tenancy\Tenancy::class)->initialized ? 'tenant.login' : 'login';
+
+        return redirect()->route($loginRoute)->with('status', 'Senha redefinida com sucesso! Faça login com sua nova senha.');
     }
 }

@@ -65,7 +65,7 @@
                         />
                         <span class="text-sm text-gray-600">Lembrar de mim</span>
                     </label>
-                    <Link :href="route('password.request')" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                    <Link :href="forgotPasswordPath" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                         Esqueceu a senha?
                     </Link>
                 </div>
@@ -93,6 +93,11 @@ import Alert from '@/Components/Alert.vue';
 
 defineOptions({ layout: null });
 
+const props = defineProps({
+    loginStorePath: String,
+    forgotPasswordPath: String,
+});
+
 const page = usePage();
 const showPassword = ref(false);
 
@@ -103,7 +108,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('login.store'), {
+    form.post(props.loginStorePath, {
         onFinish: () => form.reset('password'),
     });
 };
