@@ -4,8 +4,8 @@
         :class="[
             'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
             active
-                ? 'bg-white/15 text-white'
-                : 'text-indigo-200 hover:bg-white/8 hover:text-white'
+                ? 'bg-white/10 text-white'
+                : 'text-indigo-200 hover:bg-white/5 hover:text-white'
         ]"
     >
         <span class="flex-shrink-0">

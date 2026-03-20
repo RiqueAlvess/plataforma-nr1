@@ -3,7 +3,7 @@
         :type="type"
         :disabled="disabled || loading"
         :class="[
-            'btn',
+            'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
             variantClasses[variant],
             sizeClasses[size],
         ]"
@@ -26,15 +26,16 @@ defineProps({
 });
 
 const variantClasses = {
-    primary: 'btn-primary',
-    secondary: 'btn-secondary',
-    danger: 'btn-danger',
-    ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500',
+    secondary: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500',
+    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
+    warning: 'bg-amber-500 hover:bg-amber-600 text-white focus:ring-amber-500',
+    success: 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500',
 };
 
 const sizeClasses = {
-    sm: 'btn-sm',
-    md: '',
-    lg: 'px-6 py-3 text-base',
+    sm: 'text-xs px-3 py-1.5',
+    md: 'text-sm px-4 py-2',
+    lg: 'text-base px-6 py-3',
 };
 </script>
