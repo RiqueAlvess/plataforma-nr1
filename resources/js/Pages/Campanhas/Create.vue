@@ -60,6 +60,7 @@ const form = useForm({
 const statusOptions = [
     { value: 'rascunho', label: 'Rascunho' },
     { value: 'ativa', label: 'Ativa' },
+    { value: 'encerrada', label: 'Encerrada' },
 ];
 
 const submit = () => {
