@@ -5,26 +5,16 @@ use App\Http\Controllers\Auth;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Auth routes (guest only)
+// Central domain auth routes (use /admin/login to avoid conflict with tenant /login route)
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [Auth\LoginController::class, 'show'])->name('login');
-    Route::post('/login', [Auth\LoginController::class, 'store'])
+    Route::get('/admin/login', [Auth\LoginController::class, 'show'])->name('login');
+    Route::post('/admin/login', [Auth\LoginController::class, 'store'])
         ->middleware('throttle:3,1')
         ->name('login.store');
-
-    Route::get('/forgot-password', [Auth\ForgotPasswordController::class, 'show'])->name('password.request');
-    Route::post('/forgot-password', [Auth\ForgotPasswordController::class, 'store'])->name('password.email');
-
-    Route::get('/reset-password', [Auth\ResetPasswordController::class, 'show'])->name('password.reset');
-    Route::post('/reset-password', [Auth\ResetPasswordController::class, 'store'])->name('password.update');
 });
 
-// Authenticated routes
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [Auth\LoginController::class, 'destroy'])->name('logout');
-
-    Route::get('/', fn () => redirect()->route('dashboard'));
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/admin/logout', [Auth\LoginController::class, 'destroy'])->name('logout');
 });
 
 // Admin routes (Global Admin only)
