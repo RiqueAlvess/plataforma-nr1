@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Collection;
+
 class HseItQuestionnaire
 {
     public const DIMENSOES = [
@@ -85,6 +87,11 @@ class HseItQuestionnaire
             self::PERGUNTAS,
             fn ($p) => $p['dimensao'] === $dimensao
         ));
+    }
+
+    public static function getPerguntasDaDimensao(string $chave): Collection
+    {
+        return collect(self::PERGUNTAS)->filter(fn($p) => $p['dimensao'] === $chave)->values();
     }
 
     public static function isDimensaoNegativa(string $dimensao): bool
