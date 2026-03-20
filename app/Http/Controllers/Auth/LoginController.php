@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\AuthService;
@@ -30,7 +31,11 @@ class LoginController extends Controller
 
         auth()->login($user, $request->boolean('remember'));
 
-        return redirect()->intended(route('dashboard'));
+        $dashboardRoute = $user->role === UserRole::GLOBAL_ADMIN
+            ? route('admin.dashboard')
+            : route('tenant.dashboard');
+
+        return redirect()->intended($dashboardRoute);
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -42,6 +47,11 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        // Redirect to tenant login if in tenant context, otherwise admin login
+        $loginRoute = app(\Stancl\Tenancy\Tenancy::class)->initialized
+            ? route('tenant.login')
+            : route('login');
+
+        return redirect($loginRoute);
     }
 }
