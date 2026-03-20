@@ -13,6 +13,7 @@ class TenantUserService
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         return User::with('leaderPermissions.unidade', 'leaderPermissions.setor')
+            ->whereIn('role', ['RH', 'LEADER'])
             ->latest()
             ->paginate($perPage);
     }
@@ -65,15 +66,13 @@ class TenantUserService
         $usuario->delete();
     }
 
-    public function alternarBloqueio(User $usuario): User
+    public function alternarBloqueio(User $usuario): void
     {
         if ($usuario->isLocked()) {
             $usuario->resetFailedAttempts();
         } else {
             $usuario->update(['locked_at' => now()]);
         }
-
-        return $usuario->fresh();
     }
 
     private function sincronizarPermissoes(User $usuario, array $permissoes): void
