@@ -63,6 +63,21 @@
                         </NavItem>
                     </template>
 
+                    <!-- Leader Only -->
+                    <template v-if="isLeader">
+                        <div class="pt-4 pb-2">
+                            <p class="text-xs font-semibold text-indigo-400 uppercase tracking-wider px-3">Meu Painel</p>
+                        </div>
+                        <NavItem :href="dashboardRoute" :active="isRoute('tenant.dashboard')">
+                            <template #icon>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            </template>
+                            Análises
+                        </NavItem>
+                    </template>
+
                     <!-- Admin Only -->
                     <template v-if="isGlobalAdmin">
                         <div class="pt-4 pb-2">
@@ -180,6 +195,7 @@ const sidebarOpen = ref(false);
 
 const isGlobalAdmin = computed(() => page.props.auth.user?.role === 'GLOBAL_ADMIN');
 const isRh = computed(() => page.props.auth.user?.role === 'RH');
+const isLeader = computed(() => page.props.auth.user?.role === 'LEADER');
 
 const resolveRoute = (centralName, tenantName) => {
     try {
@@ -201,7 +217,7 @@ const logoutRouteName = computed(() => {
 
 const tenantName = computed(() => {
     if (isGlobalAdmin.value) return 'Admin Global';
-    return 'Empresa';
+    return page.props.auth.user?.tenant_name || 'Empresa';
 });
 
 const userInitials = computed(() => {

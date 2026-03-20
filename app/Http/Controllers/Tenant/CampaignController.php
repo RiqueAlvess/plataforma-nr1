@@ -93,13 +93,22 @@ class CampaignController extends Controller
         return back()->with('success', $message);
     }
 
-    public function analytics(Campaign $campaign): Response
+    public function analytics(Campaign $campaign, \Illuminate\Http\Request $request): Response
     {
-        $data = $this->analyticsService->getDashboardData($campaign);
+        $unidadeId = $request->integer('unidade_id') ?: null;
+        $setorId   = $request->integer('setor_id') ?: null;
+
+        $data = $this->analyticsService->getDashboardData($campaign, $unidadeId, $setorId);
+
+        $unidades = \App\Models\Unidade::where('is_active', true)->orderBy('nome')->get(['id', 'nome']);
+        $setores  = \App\Models\Setor::where('is_active', true)->orderBy('nome')->get(['id', 'nome', 'unidade_id']);
 
         return Inertia::render('Campanhas/Analytics', [
             'campaign'  => $campaign,
             'analytics' => $data,
+            'unidades'  => $unidades,
+            'setores'   => $setores,
+            'filtros'   => ['unidade_id' => $unidadeId, 'setor_id' => $setorId],
         ]);
     }
 }

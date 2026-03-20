@@ -45,6 +45,8 @@ Route::middleware([
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [Auth\LoginController::class, 'destroy'])->name('tenant.logout');
         Route::get('/', fn () => redirect()->route('tenant.dashboard'));
+
+        // Dashboard: accessible by all authenticated roles (RH, LEADER, GLOBAL_ADMIN)
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('tenant.dashboard');
 
         // Rotas exclusivas para RH
