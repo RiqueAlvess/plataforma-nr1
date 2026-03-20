@@ -45,6 +45,49 @@
                         </dl>
                     </div>
                 </div>
+
+                <!-- Users -->
+                <div class="card">
+                    <div class="card-header flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-900">Usuários</h3>
+                        <Link :href="route('admin.users.create') + '?tenant_id=' + tenant.id">
+                            <Button size="sm" variant="primary">Adicionar Usuário</Button>
+                        </Link>
+                    </div>
+                    <div class="card-body p-0">
+                        <div v-if="tenant.users?.length" class="divide-y divide-gray-100">
+                            <div
+                                v-for="user in tenant.users"
+                                :key="user.id"
+                                class="flex items-center justify-between px-6 py-4 hover:bg-gray-50"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-indigo-700 text-xs font-semibold">
+                                            {{ user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
+                                        <p class="text-xs text-gray-500">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <Badge :variant="roleBadge(user.role)">{{ roleLabel(user.role) }}</Badge>
+                                    <Badge :variant="user.is_active ? 'success' : 'danger'">
+                                        {{ user.is_active ? 'Ativo' : 'Inativo' }}
+                                    </Badge>
+                                    <Link :href="route('admin.users.edit', user.id)">
+                                        <Button size="sm" variant="secondary">Editar</Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-else class="px-6 py-8 text-center text-sm text-gray-400">
+                            Nenhum usuário vinculado a este tenant.
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <!-- Domains -->
@@ -86,4 +129,7 @@ import Alert from '@/Components/Alert.vue';
 
 defineProps({ tenant: Object });
 const page = usePage();
+
+const roleLabel = (role) => ({ GLOBAL_ADMIN: 'Admin Global', RH: 'RH', LEADER: 'Líder' }[role] || role);
+const roleBadge = (role) => ({ GLOBAL_ADMIN: 'primary', RH: 'info', LEADER: 'warning' }[role] || 'info');
 </script>

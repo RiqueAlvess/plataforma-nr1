@@ -46,6 +46,17 @@
                             required
                         />
 
+                        <SelectField
+                            v-if="requiresTenant"
+                            id="tenant_id"
+                            label="Tenant (Empresa)"
+                            v-model="form.tenant_id"
+                            :error="form.errors.tenant_id"
+                            :options="tenantOptions"
+                            placeholder="Selecione o tenant"
+                            required
+                        />
+
                         <div class="flex items-center gap-3">
                             <input
                                 id="is_active"
@@ -72,11 +83,14 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import InputField from '@/Components/InputField.vue';
 import SelectField from '@/Components/SelectField.vue';
 import Button from '@/Components/Button.vue';
+
+const props = defineProps({ tenants: Array });
 
 const roleOptions = [
     { value: 'GLOBAL_ADMIN', label: 'Administrador Global' },
@@ -84,13 +98,20 @@ const roleOptions = [
     { value: 'LEADER', label: 'Líder' },
 ];
 
+const tenantOptions = computed(() =>
+    (props.tenants || []).map(t => ({ value: t.id, label: t.company_name }))
+);
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     role: '',
+    tenant_id: '',
     is_active: true,
 });
+
+const requiresTenant = computed(() => ['RH', 'LEADER'].includes(form.role));
 
 const submit = () => form.post(route('admin.users.store'));
 </script>

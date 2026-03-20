@@ -14,8 +14,15 @@ class UserController extends Controller
 {
     public function index(): Response
     {
+        $query = User::with('tenant:id,company_name');
+
+        if (request('tenant_id')) {
+            $query->where('tenant_id', request('tenant_id'));
+        }
+
         return Inertia::render('Admin/Users/Index', [
-            'users' => User::paginate(15),
+            'users' => $query->paginate(15)->withQueryString(),
+            'tenants' => Tenant::all(['id', 'company_name']),
         ]);
     }
 
@@ -28,7 +35,13 @@ class UserController extends Controller
 
     public function store(UserRequest $request): RedirectResponse
     {
-        User::create($request->validated());
+        $data = $request->validated();
+
+        if (empty($data['tenant_id'])) {
+            $data['tenant_id'] = null;
+        }
+
+        User::create($data);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Usuário criado com sucesso!');
@@ -37,13 +50,24 @@ class UserController extends Controller
     public function edit(User $user): Response
     {
         return Inertia::render('Admin/Users/Edit', [
-            'user' => $user,
+            'user' => $user->load('tenant:id,company_name'),
+            'tenants' => Tenant::all(['id', 'company_name']),
         ]);
     }
 
     public function update(UserRequest $request, User $user): RedirectResponse
     {
-        $user->update($request->validated());
+        $data = $request->validated();
+
+        if (empty($data['tenant_id'])) {
+            $data['tenant_id'] = null;
+        }
+
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+
+        $user->update($data);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Usuário atualizado com sucesso!');
