@@ -30,10 +30,18 @@ class TenantController extends Controller
 
     public function store(TenantRequest $request): RedirectResponse
     {
-        $this->tenantService->create($request->validated());
+        try {
+            $tenant = $this->tenantService->create($request->validated());
+        } catch (\Throwable $e) {
+            \Log::error('Erro ao criar tenant', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erro ao criar tenant: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.tenants.index')
-            ->with('success', 'Tenant criado com sucesso!');
+            ->with('success', 'Tenant criado com sucesso! Banco de dados provisionado.');
     }
 
     public function show(Tenant $tenant): Response
@@ -72,8 +80,21 @@ class TenantController extends Controller
 
     public function repairDatabase(Tenant $tenant): RedirectResponse
     {
-        dispatch_sync(new CreateDatabase($tenant));
-        dispatch_sync(new MigrateDatabase($tenant));
+        try {
+            dispatch_sync(new CreateDatabase($tenant));
+        } catch (\Throwable $e) {
+            // Database may already exist, continue to migration
+            \Log::info('CreateDatabase: ' . $e->getMessage());
+        }
+
+        try {
+            dispatch_sync(new MigrateDatabase($tenant));
+        } catch (\Throwable $e) {
+            \Log::error('MigrateDatabase falhou', ['tenant' => $tenant->id, 'error' => $e->getMessage()]);
+
+            return redirect()->route('admin.tenants.show', $tenant->id)
+                ->with('error', 'Erro ao migrar banco: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.tenants.show', $tenant->id)
             ->with('success', 'Banco de dados criado/reparado com sucesso!');

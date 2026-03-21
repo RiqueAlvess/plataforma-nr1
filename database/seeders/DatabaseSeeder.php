@@ -7,6 +7,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Stancl\Tenancy\Jobs\CreateDatabase;
+use Stancl\Tenancy\Jobs\MigrateDatabase;
 
 class DatabaseSeeder extends Seeder
 {
@@ -39,6 +41,10 @@ class DatabaseSeeder extends Seeder
             $tenant->domains()->create(['domain' => 'demo.localhost']);
         }
 
+        // Garante que o banco do tenant existe e está migrado
+        // (necessário quando o tenant já existe mas o banco foi perdido/resetado)
+        $this->ensureTenantDatabase($tenant);
+
         // Executar no contexto do tenant para criar usuários no banco do tenant
         tenancy()->initialize($tenant);
 
@@ -68,5 +74,24 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Admin Global: admin@plataformanr1.com / admin@123');
         $this->command->info('RH (no tenant demo.localhost): rh@demo.com / rh@123');
         $this->command->info('Líder (no tenant demo.localhost): lider@demo.com / lider@123');
+    }
+
+    private function ensureTenantDatabase(Tenant $tenant): void
+    {
+        try {
+            dispatch_sync(new CreateDatabase($tenant));
+            $this->command->info("Banco do tenant [{$tenant->id}] criado.");
+        } catch (\Throwable $e) {
+            // Banco já existe, continua
+            $this->command->info("Banco do tenant [{$tenant->id}] já existe.");
+        }
+
+        try {
+            dispatch_sync(new MigrateDatabase($tenant));
+            $this->command->info("Migrations do tenant [{$tenant->id}] aplicadas.");
+        } catch (\Throwable $e) {
+            $this->command->error("Erro ao migrar banco do tenant [{$tenant->id}]: " . $e->getMessage());
+            throw $e;
+        }
     }
 }
