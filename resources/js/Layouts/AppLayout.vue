@@ -207,14 +207,14 @@ const dashboardRoute = computed(() => {
 });
 const logoutRoute = computed(() => {
     if (isTenantContext.value) {
-        return '/logout';
+        try { return route('tenant.logout'); } catch { return '/logout'; }
     }
 
     if (isGlobalAdmin.value) {
         try { return route('admin.logout'); } catch { return '/admin/logout'; }
     }
 
-    return '/logout';
+    return route('logout');
 });
 
 const tenantName = computed(() => {

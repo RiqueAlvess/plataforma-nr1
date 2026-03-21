@@ -30,11 +30,11 @@ class LoginController extends Controller
 
         auth()->login($user, $request->boolean('remember'));
 
-        // Detectar contexto: tenant ou central
-        $isTenant = app()->bound('currentTenant') && tenancy()->initialized;
+        // Detectar contexto pelo parâmetro de rota (path-based tenancy)
+        $tenant = $request->route('tenant');
 
-        if ($isTenant) {
-            return redirect()->intended(route('tenant.dashboard'));
+        if ($tenant) {
+            return redirect()->intended(route('tenant.dashboard', ['tenant' => $tenant]));
         }
 
         return redirect()->intended(route('dashboard'));
@@ -42,7 +42,7 @@ class LoginController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        $isTenant = app()->bound('currentTenant') && tenancy()->initialized;
+        $tenant = $request->route('tenant');
 
         $this->authService->logout(auth()->user());
 
@@ -51,8 +51,8 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        if ($isTenant) {
-            return redirect()->route('tenant.login');
+        if ($tenant) {
+            return redirect()->route('tenant.login', ['tenant' => $tenant]);
         }
 
         return redirect()->route('login');

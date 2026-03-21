@@ -20,14 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // Redirect unauthenticated users to the correct login based on domain context
+        // Redirect unauthenticated users to the correct login based on path context
         $middleware->redirectGuestsTo(function (Request $request) {
-            $host = $request->getHost();
-            $centralDomains = config('tenancy.central_domains', []);
-            if (in_array($host, $centralDomains)) {
-                return route('login');
+            $tenant = $request->route('tenant');
+            if ($tenant) {
+                return route('tenant.login', ['tenant' => $tenant]);
             }
-            return '/login';
+            return route('login');
         });
 
         $middleware->alias([

@@ -17,9 +17,11 @@ class ForgotPasswordController extends Controller
     {
         $isTenant = app(\Stancl\Tenancy\Tenancy::class)->initialized;
 
+        $tenantId = $isTenant ? tenancy()->tenant->id : null;
+
         return Inertia::render('Auth/ForgotPassword', [
-            'passwordEmailPath' => $isTenant ? route('tenant.password.email') : route('password.email'),
-            'loginPath'         => $isTenant ? route('tenant.login') : route('login'),
+            'passwordEmailPath' => $isTenant ? route('tenant.password.email', ['tenant' => $tenantId]) : route('password.email'),
+            'loginPath'         => $isTenant ? route('tenant.login', ['tenant' => $tenantId]) : route('login'),
         ]);
     }
 

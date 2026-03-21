@@ -80,7 +80,7 @@ class SurveyController extends Controller
             $request->respostas
         );
 
-        return redirect()->route('pesquisa.concluido');
+        return redirect()->route('pesquisa.concluido', ['tenant' => tenant('id')]);
     }
 
     public function concluido(): Response
