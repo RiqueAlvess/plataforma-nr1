@@ -208,12 +208,7 @@ const dashboardRoute = computed(() => {
     }
 });
 const logoutRouteName = computed(() => {
-    try {
-        route('tenant.logout');
-        return 'tenant.logout';
-    } catch {
-        return 'logout';
-    }
+    return isGlobalAdmin.value ? 'logout' : 'tenant.logout';
 });
 
 const tenantName = computed(() => {
