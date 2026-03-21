@@ -17,15 +17,29 @@ class LoginController extends Controller
 
     public function show(): Response
     {
-        return Inertia::render('Auth/Login');
+        $isTenant = app(\Stancl\Tenancy\Tenancy::class)->initialized;
+
+        return Inertia::render('Auth/Login', [
+            'loginStorePath'     => $isTenant ? route('tenant.login.store') : route('login.store'),
+            'forgotPasswordPath' => $isTenant ? route('tenant.password.request') : route('password.request'),
+        ]);
     }
 
     public function store(LoginRequest $request): RedirectResponse
     {
+        $isTenant = app(\Stancl\Tenancy\Tenancy::class)->initialized;
+
         $user = $this->authService->attempt(
             $request->email,
             $request->password
         );
+
+        // Admin login is only for global admins on the central domain
+        if (! $isTenant && $user->role !== UserRole::GLOBAL_ADMIN) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => ['Esta página de login é exclusiva para administradores globais.'],
+            ]);
+        }
 
         $request->session()->regenerate();
 

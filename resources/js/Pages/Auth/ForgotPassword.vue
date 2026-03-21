@@ -31,7 +31,7 @@
             </form>
 
             <div class="mt-4 text-center">
-                <Link :href="route('login')" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                <Link :href="loginPath" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                     ← Voltar ao login
                 </Link>
             </div>
@@ -48,7 +48,12 @@ import Alert from '@/Components/Alert.vue';
 
 defineOptions({ layout: null });
 
+const props = defineProps({
+    passwordEmailPath: String,
+    loginPath: String,
+});
+
 const page = usePage();
 const form = useForm({ email: '' });
-const submit = () => form.post(route('password.email'));
+const submit = () => form.post(props.passwordEmailPath);
 </script>

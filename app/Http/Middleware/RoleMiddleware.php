@@ -13,7 +13,8 @@ class RoleMiddleware
         $user = $request->user();
 
         if (!$user) {
-            return redirect()->route('login');
+            $loginRoute = app(\Stancl\Tenancy\Tenancy::class)->initialized ? 'tenant.login' : 'login';
+            return redirect()->route($loginRoute);
         }
 
         $allowedRoles = array_map(fn($r) => strtoupper($r), $roles);

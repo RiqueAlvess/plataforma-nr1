@@ -5,12 +5,20 @@ use App\Http\Controllers\Auth;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
+// Root redirect to admin login
+Route::get('/', fn () => redirect()->route('login'));
+
 // Central domain auth routes (use /admin/login to avoid conflict with tenant /login route)
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [Auth\LoginController::class, 'show'])->name('login');
     Route::post('/admin/login', [Auth\LoginController::class, 'store'])
         ->middleware('throttle:3,1')
         ->name('login.store');
+
+    Route::get('/admin/forgot-password', [Auth\ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/admin/forgot-password', [Auth\ForgotPasswordController::class, 'store'])->name('password.email');
+    Route::get('/admin/reset-password', [Auth\ResetPasswordController::class, 'show'])->name('password.reset');
+    Route::post('/admin/reset-password', [Auth\ResetPasswordController::class, 'store'])->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {
