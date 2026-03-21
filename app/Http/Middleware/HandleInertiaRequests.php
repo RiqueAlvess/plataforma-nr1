@@ -34,18 +34,21 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        $isTenantContext = app(\Stancl\Tenancy\Tenancy::class)->initialized;
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
                     'id'          => $user->id,
                     'name'        => $user->name,
                     'email'       => $user->email,
-                    'role'        => $user->role,
+                    'role'        => $user->role->value,
                     'tenant_id'   => $user->tenant_id,
                     'tenant_name' => $tenantName,
                     'is_active'   => $user->is_active,
                 ] : null,
             ],
+            'isTenantContext' => $isTenantContext,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
