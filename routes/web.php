@@ -62,7 +62,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Admin routes (Global Admin only)
-Route::middleware(['auth', 'role:global_admin'])
+Route::middleware(['auth', 'role:GLOBAL_ADMIN'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
