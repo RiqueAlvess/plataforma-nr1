@@ -197,15 +197,16 @@ const isGlobalAdmin = computed(() => page.props.auth.user?.role === 'GLOBAL_ADMI
 const isRh = computed(() => page.props.auth.user?.role === 'RH');
 const isLeader = computed(() => page.props.auth.user?.role === 'LEADER');
 
-const resolveRoute = (centralName, tenantName) => {
-    try {
-        return route(tenantName);
-    } catch {
-        return route(centralName);
+const dashboardRoute = computed(() => {
+    if (isGlobalAdmin.value) {
+        return route('admin.dashboard');
     }
-};
-
-const dashboardRoute = computed(() => resolveRoute('dashboard', 'tenant.dashboard'));
+    try {
+        return route('tenant.dashboard');
+    } catch {
+        return route('dashboard');
+    }
+});
 const logoutRouteName = computed(() => {
     try {
         route('tenant.logout');

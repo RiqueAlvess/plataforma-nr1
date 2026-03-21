@@ -33,6 +33,8 @@ Route::middleware(['auth', 'role:global_admin'])
         Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
         Route::resource('tenants', Admin\TenantController::class);
+        Route::post('tenants/{tenant}/repair-database', [Admin\TenantController::class, 'repairDatabase'])
+            ->name('tenants.repair-database');
         Route::resource('users', Admin\UserController::class);
         Route::post('users/{user}/toggle-lock', [Admin\UserController::class, 'toggleLock'])
             ->name('users.toggle-lock');

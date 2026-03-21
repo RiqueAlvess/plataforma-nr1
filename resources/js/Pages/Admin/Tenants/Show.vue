@@ -116,20 +116,33 @@
             <Link :href="route('admin.tenants.index')">
                 <Button variant="secondary">← Voltar</Button>
             </Link>
+            <Button variant="warning" :disabled="repairing" @click="repairDatabase">
+                {{ repairing ? 'Reparando...' : 'Reparar Banco de Dados' }}
+            </Button>
         </div>
     </AppLayout>
 </template>
 
 <script setup>
-import { usePage, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { usePage, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Button from '@/Components/Button.vue';
 import Badge from '@/Components/Badge.vue';
 import Alert from '@/Components/Alert.vue';
 
-defineProps({ tenant: Object });
+const props = defineProps({ tenant: Object });
 const page = usePage();
+const repairing = ref(false);
 
 const roleLabel = (role) => ({ GLOBAL_ADMIN: 'Admin Global', RH: 'RH', LEADER: 'Líder' }[role] || role);
 const roleBadge = (role) => ({ GLOBAL_ADMIN: 'primary', RH: 'info', LEADER: 'warning' }[role] || 'info');
+
+const repairDatabase = () => {
+    if (!confirm('Isso criará o banco de dados do tenant se ele não existir e executará as migrations. Continuar?')) return;
+    repairing.value = true;
+    router.post(route('admin.tenants.repair-database', props.tenant.id), {}, {
+        onFinish: () => { repairing.value = false; },
+    });
+};
 </script>
