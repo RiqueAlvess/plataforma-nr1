@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Tightenco\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -18,23 +19,13 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        $tenantId = null;
         $tenantName = null;
-        if ($user && $user->tenant_id) {
-            try {
-                $tenantName = \App\Models\Tenant::find($user->tenant_id)?->company_name;
-            } catch (\Throwable) {
-                // May fail if not in tenant context
-                $tenantName = tenancy()->tenant?->company_name ?? null;
-            }
-        } elseif (app()->bound('tenant') && tenancy()->initialized) {
-            try {
-                $tenantName = tenancy()->tenant?->company_name ?? null;
-            } catch (\Throwable) {
-                // ignore
-            }
-        }
 
-        $isTenantContext = app(\Stancl\Tenancy\Tenancy::class)->initialized;
+        if (tenancy()->initialized) {
+            $tenantId = tenancy()->tenant->id;
+            $tenantName = tenancy()->tenant->company_name ?? null;
+        }
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -43,17 +34,23 @@ class HandleInertiaRequests extends Middleware
                     'name'        => $user->name,
                     'email'       => $user->email,
                     'role'        => $user->role->value,
-                    'tenant_id'   => $user->tenant_id,
+                    'tenant_id'   => $user->tenant_id ?? $tenantId,
                     'tenant_name' => $tenantName,
                     'is_active'   => $user->is_active,
                 ] : null,
             ],
-            'isTenantContext' => $isTenantContext,
+            'isTenantContext' => tenancy()->initialized,
+            'currentTenant'   => $tenantId,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
                 'status'  => fn () => $request->session()->get('status'),
             ],
+            // Ziggy com defaults de tenant para que route() funcione sem passar {tenant} explicitamente
+            'ziggy' => fn () => array_merge((new Ziggy)->toArray(), [
+                'location' => $request->url(),
+                'defaults' => ['tenant' => $tenantId],
+            ]),
         ]);
     }
 }

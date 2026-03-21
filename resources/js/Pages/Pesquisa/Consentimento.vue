@@ -48,7 +48,7 @@
                 <p class="text-sm font-semibold text-gray-700 mb-4">Declaração de Consentimento:</p>
 
                 <div class="space-y-3">
-                    <Link :href="route('pesquisa.questionario', token)">
+                    <Link :href="route('pesquisa.questionario', { token: token })">
                         <button class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:bg-indigo-100 transition-colors text-left">
                             <div class="w-5 h-5 rounded border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
                                 <svg class="w-3 h-3 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">

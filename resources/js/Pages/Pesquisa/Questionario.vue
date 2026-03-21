@@ -145,7 +145,7 @@ const submit = () => {
 
     enviando.value = true;
 
-    router.post(route('pesquisa.responder', props.token), {
+    router.post(route('pesquisa.responder', { token: props.token }), {
         genero: form.genero || null,
         faixa_etaria: form.faixa_etaria || null,
         respostas: form.respostas,
