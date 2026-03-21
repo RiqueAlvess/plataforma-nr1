@@ -65,7 +65,7 @@
                         />
                         <span class="text-sm text-gray-600">Lembrar de mim</span>
                     </label>
-                    <Link :href="forgotPasswordPath" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                    <Link :href="resolvedForgotPasswordPath" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                         Esqueceu a senha?
                     </Link>
                 </div>
@@ -84,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
 import InputField from '@/Components/InputField.vue';
@@ -101,6 +101,26 @@ const props = defineProps({
 const page = usePage();
 const showPassword = ref(false);
 
+const resolvedLoginStorePath = computed(() => {
+    if (props.loginStorePath) {
+        return props.loginStorePath;
+    }
+
+    if (page.props.isTenantContext === true) {
+        return '/login';
+    }
+
+    return '/login';
+});
+
+const resolvedForgotPasswordPath = computed(() => {
+    if (props.forgotPasswordPath) {
+        return props.forgotPasswordPath;
+    }
+
+    return '/forgot-password';
+});
+
 const form = useForm({
     email: '',
     password: '',
@@ -108,7 +128,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(props.loginStorePath, {
+    form.post(resolvedLoginStorePath.value, {
         onFinish: () => form.reset('password'),
     });
 };
