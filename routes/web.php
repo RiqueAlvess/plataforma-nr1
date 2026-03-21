@@ -5,8 +5,16 @@ use App\Http\Controllers\Auth;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Root redirect to admin login
+// Root redirect
 Route::get('/', fn () => redirect()->route('login'));
+
+// Named 'home' route used by Laravel's guest middleware when user is already authenticated
+Route::get('/home', function () {
+    if (auth()->check() && auth()->user()->isGlobalAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('login');
+})->name('home');
 
 // Central domain auth routes (use /admin/login to avoid conflict with tenant /login route)
 Route::middleware('guest')->group(function () {
