@@ -9,6 +9,8 @@ use App\Services\TenantService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Stancl\Tenancy\Jobs\CreateDatabase;
+use Stancl\Tenancy\Jobs\MigrateDatabase;
 
 class TenantController extends Controller
 {
@@ -66,5 +68,14 @@ class TenantController extends Controller
 
         return redirect()->route('admin.tenants.index')
             ->with('success', 'Tenant removido com sucesso!');
+    }
+
+    public function repairDatabase(Tenant $tenant): RedirectResponse
+    {
+        dispatch_sync(new CreateDatabase($tenant));
+        dispatch_sync(new MigrateDatabase($tenant));
+
+        return redirect()->route('admin.tenants.show', $tenant->id)
+            ->with('success', 'Banco de dados criado/reparado com sucesso!');
     }
 }

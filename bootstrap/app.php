@@ -5,6 +5,8 @@ use App\Http\Middleware\EnsureRhOrAbove;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Stancl\Tenancy\Exceptions\TenantDatabaseDoesNotExistException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,5 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (TenantDatabaseDoesNotExistException $e, Request $request) {
+            return response()->view('errors.tenant-database-missing', [
+                'tenantId' => tenancy()->initialized ? tenant('id') : null,
+            ], 503);
+        });
     })->create();
