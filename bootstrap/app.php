@@ -20,6 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // Redirect unauthenticated users to the correct login based on domain context
+        $middleware->redirectGuestsTo(function (Request $request) {
+            $host = $request->getHost();
+            $centralDomains = config('tenancy.central_domains', []);
+            if (in_array($host, $centralDomains)) {
+                return route('login');
+            }
+            return '/login';
+        });
+
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'global_admin' => EnsureGlobalAdmin::class,

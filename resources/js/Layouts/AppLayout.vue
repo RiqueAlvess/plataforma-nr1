@@ -197,18 +197,19 @@ const isGlobalAdmin = computed(() => page.props.auth.user?.role === 'GLOBAL_ADMI
 const isRh = computed(() => page.props.auth.user?.role === 'RH');
 const isLeader = computed(() => page.props.auth.user?.role === 'LEADER');
 
+const isTenantContext = computed(() => page.props.isTenantContext === true);
+
 const dashboardRoute = computed(() => {
-    if (isGlobalAdmin.value) {
-        return route('admin.dashboard');
+    if (isTenantContext.value) {
+        try { return route('tenant.dashboard'); } catch { return '/dashboard'; }
     }
-    try {
-        return route('tenant.dashboard');
-    } catch {
-        return route('dashboard');
-    }
+    return route('admin.dashboard');
 });
-const logoutRouteName = computed(() => {
-    return isGlobalAdmin.value ? 'logout' : 'tenant.logout';
+const logoutRoute = computed(() => {
+    if (isTenantContext.value) {
+        try { return route('tenant.logout'); } catch { return '/logout'; }
+    }
+    return route('logout');
 });
 
 const tenantName = computed(() => {
@@ -239,6 +240,6 @@ const isRoute = (pattern) => {
 };
 
 const logout = () => {
-    router.post(route(logoutRouteName.value));
+    router.post(logoutRoute.value);
 };
 </script>

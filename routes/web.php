@@ -5,23 +5,51 @@ use App\Http\Controllers\Auth;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Root redirect
-Route::get('/', fn () => redirect()->route('login'));
+// Helper: check if current request is on a central domain
+$isCentralDomain = function () {
+    $host = request()->getHost();
+    return in_array($host, config('tenancy.central_domains', []));
+};
+
+// Root redirect — detect tenant domain and redirect accordingly
+Route::get('/', function () use ($isCentralDomain) {
+    if ($isCentralDomain()) {
+        return redirect()->route('login');
+    }
+    // On tenant domain, redirect to tenant login
+    return redirect('/login');
+});
 
 // Named 'home' route used by Laravel's guest middleware when user is already authenticated
-Route::get('/home', function () {
-    if (auth()->check() && auth()->user()->isGlobalAdmin()) {
-        return redirect()->route('admin.dashboard');
+Route::get('/home', function () use ($isCentralDomain) {
+    if (auth()->check()) {
+        if (auth()->user()->isGlobalAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        // Authenticated non-admin: send to dashboard
+        return redirect('/dashboard');
+    }
+    if (! $isCentralDomain()) {
+        return redirect('/login');
     }
     return redirect()->route('login');
 })->name('home');
 
 // Central domain auth routes (use /admin/login to avoid conflict with tenant /login route)
-Route::middleware('guest')->group(function () {
-    Route::get('/admin/login', [Auth\LoginController::class, 'show'])->name('login');
-    Route::post('/admin/login', [Auth\LoginController::class, 'store'])
-        ->middleware('throttle:3,1')
-        ->name('login.store');
+Route::middleware('guest')->group(function () use ($isCentralDomain) {
+    Route::get('/admin/login', function () use ($isCentralDomain) {
+        if (! $isCentralDomain()) {
+            return redirect('/login');
+        }
+        return app(Auth\LoginController::class)->show();
+    })->name('login');
+
+    Route::post('/admin/login', function (\App\Http\Requests\Auth\LoginRequest $request) use ($isCentralDomain) {
+        if (! $isCentralDomain()) {
+            return redirect('/login');
+        }
+        return app(Auth\LoginController::class)->store($request);
+    })->middleware('throttle:3,1')->name('login.store');
 
     Route::get('/admin/forgot-password', [Auth\ForgotPasswordController::class, 'show'])->name('password.request');
     Route::post('/admin/forgot-password', [Auth\ForgotPasswordController::class, 'store'])->name('password.email');
