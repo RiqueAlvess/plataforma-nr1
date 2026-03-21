@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\AuthService;
@@ -17,43 +16,34 @@ class LoginController extends Controller
 
     public function show(): Response
     {
-        $isTenant = app(\Stancl\Tenancy\Tenancy::class)->initialized;
-
-        return Inertia::render('Auth/Login', [
-            'loginStorePath'     => $isTenant ? route('tenant.login.store') : route('login.store'),
-            'forgotPasswordPath' => $isTenant ? route('tenant.password.request') : route('password.request'),
-        ]);
+        return Inertia::render('Auth/Login');
     }
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        $isTenant = app(\Stancl\Tenancy\Tenancy::class)->initialized;
-
         $user = $this->authService->attempt(
             $request->email,
             $request->password
         );
 
-        // Admin login is only for global admins on the central domain
-        if (! $isTenant && $user->role !== UserRole::GLOBAL_ADMIN) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'email' => ['Esta página de login é exclusiva para administradores globais.'],
-            ]);
-        }
-
         $request->session()->regenerate();
 
         auth()->login($user, $request->boolean('remember'));
 
-        $dashboardRoute = $user->role === UserRole::GLOBAL_ADMIN
-            ? route('admin.dashboard')
-            : route('tenant.dashboard');
+        // Detectar contexto: tenant ou central
+        $isTenant = app()->bound('currentTenant') && tenancy()->initialized;
 
-        return redirect()->intended($dashboardRoute);
+        if ($isTenant) {
+            return redirect()->intended(route('tenant.dashboard'));
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $isTenant = app()->bound('currentTenant') && tenancy()->initialized;
+
         $this->authService->logout(auth()->user());
 
         auth()->logout();
@@ -61,11 +51,10 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Redirect to tenant login if in tenant context, otherwise admin login
-        $loginRoute = app(\Stancl\Tenancy\Tenancy::class)->initialized
-            ? route('tenant.login')
-            : route('login');
+        if ($isTenant) {
+            return redirect()->route('tenant.login');
+        }
 
-        return redirect($loginRoute);
+        return redirect()->route('login');
     }
 }
